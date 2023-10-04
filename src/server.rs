@@ -27,7 +27,7 @@ impl Auth for AuthImpl {
 
 #[tokio::main]
 async fn main() {
-    let addr = "127.0.0.1:70077".to_string();
+    let addr = "127.0.0.1:777".to_string();
 
     println!("Running the server in {}", addr);
 
