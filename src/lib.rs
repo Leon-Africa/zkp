@@ -135,7 +135,7 @@ mod test {
     }
 
     #[test] //https://www.rfc-editor.org/rfc/rfc5114#section-2.1
-    //1024-bit MODP Group with 160-bit Prime Order Subgroup 
+            //1024-bit MODP Group with 160-bit Prime Order Subgroup
     fn proto_test_1024_bit_constants() {
         //The generator generates a prime-order subgroup of size:
         //q = F518AA87 81A8DF27 8ABA4E7D 64B7CB9D 49462353
@@ -163,7 +163,6 @@ mod test {
         //Prover to verifier set 1
         let y1: BigUint = ZKP::mod_exp(&alpha, &x, &p);
         let y2: BigUint = ZKP::mod_exp(&beta, &x, &p);
-       
 
         //Prover to verifier set 2
         let r1: BigUint = ZKP::mod_exp(&alpha, &k, &p);
