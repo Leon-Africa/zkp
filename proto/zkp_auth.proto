@@ -1,0 +1,48 @@
+syntax = "proto3";
+package zkp_auth;
+
+// Define a message for registering a user
+message RegisterRequest {
+    string user = 1;    // User's name
+    int64 y1 = 2;       // First integer value
+    int64 y2 = 3;       // Second integer value
+}
+
+// Response message for user registration (empty in this case)
+message RegisterResponse {}
+
+// Define a message for requesting an authentication challenge
+message AuthenticationChallengeRequest {
+    string user = 1;    // User's name
+    int64 r1 = 2;       // First challenge value
+    int64 r2 = 3;       // Second challenge value
+}
+
+// Response message for an authentication challenge request
+message AuthenticationChallengeResponse {
+    string auth_id = 1; // Authentication identifier
+    int64 c = 2;        // Challenge value
+}
+
+// Define a message for providing an authentication answer
+message AuthenticationAnswerRequest {
+    string auth_id = 1; // Authentication identifier
+    int64 s = 2;        // Authentication answer value
+}
+
+// Response message for an authentication answer
+message AuthenticationAnswerResponse {
+    string session_id = 1; // Session identifier
+}
+
+// Define a service named 'Auth' with three RPC methods
+service Auth {
+    // Register a user
+    rpc Register(RegisterRequest) returns (RegisterResponse) {}
+
+    // Create an authentication challenge
+    rpc CreateAuthenticationChallenge(AuthenticationChallengeRequest) returns (AuthenticationChallengeResponse) {}
+
+    // Verify an authentication answer
+    rpc VerifyAuthentication(AuthenticationAnswerRequest) returns (AuthenticationAnswerResponse) {}
+}
