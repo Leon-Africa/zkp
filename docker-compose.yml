@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    command: [ "cargo", "run", "--bin", "server" ]
+    volumes:
+      - ./src:/zkp/src
+    environment:
+      - USER=leonafrica
+    container_name: zkp-server
+    ports:
+      - "7770:7770" # Publish container's port 7770 to host port 7770
+    expose:
+      - "7770"
+    networks:
+      zkpnetwork:
+        aliases:
+          - zkp-server
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    command: [ "cargo", "run", "--bin", "client" ]
+    volumes:
+      - ./src:/zkp/src
+    environment:
+      - USER=leonafrica
+    container_name: zkp-client
+    networks:
+      zkpnetwork:
+        aliases:
+          - zkp-client
+
+networks:
+  zkpnetwork:
+    driver: bridge

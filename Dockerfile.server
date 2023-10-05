@@ -1,0 +1,26 @@
+FROM rust:latest AS build
+
+WORKDIR /zkp
+
+COPY Cargo.toml Cargo.lock ./
+
+RUN mkdir src
+
+COPY src ./src
+
+RUN apt-get update && \
+    apt-get install -y protobuf-compiler
+
+RUN cargo build --release --bin server
+
+FROM rust:latest
+
+WORKDIR /zkp
+
+COPY --from=build /zkp/src ./
+
+COPY --from=build /zkp/Cargo.toml /zkp/Cargo.lock ./
+
+COPY --from=build /zkp/target/release/server ./server
+
+CMD ["./server"]
