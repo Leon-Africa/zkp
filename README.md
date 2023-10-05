@@ -28,6 +28,11 @@ Terminal 2:
 cargo run --bin client
 ```
 
+Local Usage Summary:
+
+https://github.com/Leon-Africa/zkp/assets/16097992/0da56809-33a4-4f68-ad5a-cccd4fc6d921
+
+
 ### Docker Automation
 
 Ensure that you have the follwing installed:
