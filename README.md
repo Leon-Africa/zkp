@@ -29,6 +29,7 @@ cargo run --bin client
 ```
 
 Local Usage Summary
+
 https://github.com/Leon-Africa/zkp/assets/16097992/578d6b28-d6a8-4435-9c48-a44aabf54379
 
 
