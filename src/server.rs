@@ -89,7 +89,7 @@ impl Auth for AuthImpl {
             let (_, _, _, q) = ZKP::get_constants();
 
             let c = ZKP::gen_ran_below(&q);
-            let auth_id = "asdsadasd".to_string();
+            let auth_id = ZKP::gen_ran_str(1000);
 
             println!("✅ Successful Challenge Request username: {:?}", username);
 

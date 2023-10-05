@@ -1,6 +1,6 @@
 use hex;
 use num_bigint::{BigUint, RandBigInt};
-use rand::rngs::ThreadRng;
+use rand::{rngs::ThreadRng, Rng};
 
 pub struct ZKP {
     p: BigUint,     //prime
@@ -8,7 +8,6 @@ pub struct ZKP {
     alpha: BigUint, //generator
     beta: BigUint,  //generator
 }
-
 
 impl ZKP {
     // Calculate n^exp mod p
@@ -54,7 +53,7 @@ impl ZKP {
     }
 
     pub fn get_constants() -> (BigUint, BigUint, BigUint, BigUint) {
-         //The generator generates a prime-order subgroup of size:
+        //The generator generates a prime-order subgroup of size:
         //q = F518AA87 81A8DF27 8ABA4E7D 64B7CB9D 49462353
         let p = BigUint::from_bytes_be(&hex::decode("B10B8F96A080E01DDE92DE5EAE5D54EC52C99FBCFB06A3C69A6A9DCA52D23B616073E28675A23D189838EF1E2EE652C013ECB4AEA906112324975C3CD49B83BFACCBDD7D90C4BD7098488E9C219A73724EFFD6FAE5644738FAA31A4FF55BCCC0A151AF5F0DC8B4BD45BF37DF365C1A65E68CFDA76D4DA708DF1FB2BC2E4A4371").unwrap(),);
         let q = BigUint::from_bytes_be(
@@ -66,6 +65,14 @@ impl ZKP {
         let beta: BigUint = alpha.modpow(&ZKP::gen_ran_below(&q), &p);
 
         (alpha, beta, p, q)
+    }
+
+    pub fn gen_ran_str(size: usize) -> String {
+        rand::thread_rng()
+            .sample_iter(rand::distributions::Alphanumeric)
+            .take(size)
+            .map(char::from)
+            .collect()
     }
 }
 
