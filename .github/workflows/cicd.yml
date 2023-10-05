@@ -23,7 +23,7 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
     - name: Run Server
-      run: cargo run --bin server
+      run: cargo run --bin server &
     - name: Run Client
       run: cargo run --bin client
       
