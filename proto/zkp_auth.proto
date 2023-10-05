@@ -4,8 +4,8 @@ package zkp_auth;
 //Prover registers in the server sending: y1 = alpha^x mod p and y2 = beta^x mod p
 message RegisterRequest {
     string user = 1;    
-    int64 y1 = 2;      
-    int64 y2 = 3;      
+    bytes y1 = 2;      
+    bytes y2 = 3;      
 }
 
 message RegisterResponse {}
@@ -13,19 +13,19 @@ message RegisterResponse {}
 //Prover ask for challenge in the server sending: r1 = alpha^k mod p and r2 = beta^k mod p the Verifier sends the challenge "c" back 
 message AuthenticationChallengeRequest {
     string user = 1;    
-    int64 r1 = 2;      
-    int64 r2 = 3;      
+    bytes r1 = 2;      
+    bytes r2 = 3;      
 }
 
 message AuthenticationChallengeResponse {
     string auth_id = 1; 
-    int64 c = 2;        
+    bytes c = 2;        
 }
 
 //Prover sends solution "s = k - c * x mod q" to the challenge and Verifier sends the session ID if the solution is correct
 message AuthenticationAnswerRequest {
     string auth_id = 1; 
-    int64 s = 2;        
+    bytes s = 2;        
 }
 
 message AuthenticationAnswerResponse {
