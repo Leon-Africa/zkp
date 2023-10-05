@@ -28,9 +28,10 @@ Terminal 2:
 cargo run --bin client
 ```
 
-Local Usage Summary:
+Local Usage Summary
+https://github.com/Leon-Africa/zkp/assets/16097992/578d6b28-d6a8-4435-9c48-a44aabf54379
 
-https://github.com/Leon-Africa/zkp/assets/16097992/0da56809-33a4-4f68-ad5a-cccd4fc6d921
+
 
 
 ### Docker Automation
