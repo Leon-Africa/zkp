@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use num_bigint::BigUint;
-use num_traits::{FromPrimitive, ToPrimitive};
 use std::sync::Mutex;
 use tonic::{transport::Server, Code, Request, Response, Status};
 
@@ -24,7 +23,7 @@ pub struct AuthImpl {
 }
 #[derive(Debug, Default, Hash)]
 pub struct UserInfo {
-    pub user_name: String,
+    pub username: String,
 
     //registration
     pub y1: BigUint,
@@ -52,17 +51,18 @@ impl Auth for AuthImpl {
 
         //get request information
         let username = request.user;
-        let y1 = BigUint::from_bytes_be(&request.y1);
-        let y2 = BigUint::from_bytes_be(&request.y2);
 
         //intialize structure
-        let mut user_info = UserInfo::default();
+        // let mut user_info = UserInfo::default();
 
-        user_info.user_name = username.clone();
-        user_info.y1 = y1;
-        user_info.y2 = y2;
+        let user_info = UserInfo {
+            username: username.clone(),
+            y1: BigUint::from_bytes_be(&request.y1),
+            y2: BigUint::from_bytes_be(&request.y2),
+            ..Default::default()
+        };
 
-        let mut user_info_hashmap = &mut self.user_info.lock().unwrap(); //async ensure no other read or process can read from memory
+        let user_info_hashmap = &mut self.user_info.lock().unwrap(); //async ensure no other read or process can read from memory
         user_info_hashmap.insert(username.clone(), user_info);
 
         Ok(Response::new(RegisterResponse {})) //defined in protobuf
@@ -78,8 +78,9 @@ impl Auth for AuthImpl {
 
         //get request information
         let username = request.user;
+        println!("Processing Challenge Request username: {:?}", username);
 
-        let mut user_info_hashmap = &mut self.user_info.lock().unwrap(); //async ensure no other read or process can read from memory
+        let user_info_hashmap = &mut self.user_info.lock().unwrap(); //async ensure no other read or process can read from memory
 
         //has the user registered
         if let Some(user_info) = user_info_hashmap.get_mut(&username) {
@@ -91,11 +92,11 @@ impl Auth for AuthImpl {
             user_info.r1 = BigUint::from_bytes_be(&request.r1);
             user_info.r2 = BigUint::from_bytes_be(&request.r2);
 
-            println!("✅ Successful Challenge Request username: {:?}", username);
-
             //store auth id
-            let mut auth_id_to_user = &mut self.auth_id_to_user.lock().unwrap();
-            auth_id_to_user.insert(auth_id.clone(), username);
+            let auth_id_to_user = &mut self.auth_id_to_user.lock().unwrap();
+            auth_id_to_user.insert(auth_id.clone(), username.clone());
+
+            println!("Successful Challenge Request username: {:?}", username);
 
             Ok(Response::new(AuthenticationChallengeResponse {
                 auth_id,
@@ -123,32 +124,35 @@ impl Auth for AuthImpl {
         let auth_id_to_user_hashmap = &mut self.auth_id_to_user.lock().unwrap(); //async ensure no other read or process can read from memory
 
         //has the user registered
-        if let Some(user_name) = auth_id_to_user_hashmap.get(&auth_id) {
-            let mut user_info_hashmap = &mut self.user_info.lock().unwrap(); //async ensure no other read or process can read from memory
+        if let Some(username) = auth_id_to_user_hashmap.get(&auth_id) {
+            let user_info_hashmap = &mut self.user_info.lock().unwrap(); //async ensure no other read or process can read from memory
             let user_info = user_info_hashmap
-                .get_mut(user_name)
+                .get_mut(username)
                 .expect("AUthId: {} not found on hashmap");
 
-            let s = &user_info.s;
-            let r1 = &user_info.r1;
-            let r2 = &user_info.r2;
-            let y1 = &user_info.y1;
-            let y2 = &user_info.y2;
-            let c = &user_info.c;
+            let s = BigUint::from_bytes_be(&request.s);
+            user_info.s = s;
 
             let (alpha, beta, p, q) = ZKP::get_constants();
             let zkp = ZKP { alpha, beta, p, q };
 
-            let verification = zkp.verify(r1, r2, y1, y2, c, s);
+            let verification = zkp.verify(
+                &user_info.r1,
+                &user_info.r2,
+                &user_info.y1,
+                &user_info.y2,
+                &user_info.c,
+                &user_info.s,
+            );
 
             if verification {
                 let session_id = ZKP::gen_ran_str(1000);
 
-                println!("Correct Challenge Solution username: {:?}", user_name);
+                println!("Correct Challenge Solution username: {:?}", username);
 
                 Ok(Response::new(AuthenticationAnswerResponse { session_id }))
             } else {
-                println!("Wrong Challenge Solution username: {:?}", user_name);
+                println!("Wrong Challenge Solution username: {:?}", username);
 
                 Err(Status::new(
                     Code::PermissionDenied,

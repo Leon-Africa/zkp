@@ -3,13 +3,20 @@ use num_bigint::{BigUint, RandBigInt};
 use rand::{rngs::ThreadRng, Rng};
 
 pub struct ZKP {
-   pub p: BigUint,     //prime
-   pub q: BigUint,     //group order
-   pub alpha: BigUint, //generator
-   pub beta: BigUint,  //generator
+    pub p: BigUint,     //prime
+    pub q: BigUint,     //group order
+    pub alpha: BigUint, //generator
+    pub beta: BigUint,  //generator
 }
 
 impl ZKP {
+    /// output = (alpha^exp mod p, beta^exp mod p)
+    pub fn compute_pair(&self, exp: &BigUint) -> (BigUint, BigUint) {
+        let p1 = self.alpha.modpow(exp, &self.p);
+        let p2 = self.beta.modpow(exp, &self.p);
+        (p1, p2)
+    }
+
     // Calculate n^exp mod p
     pub fn mod_exp(n: &BigUint, exp: &BigUint, prime: &BigUint) -> BigUint {
         n.modpow(exp, prime)
@@ -63,7 +70,7 @@ impl ZKP {
 
         //G is order q(prime) then alpha^i is a generator
         let exp = BigUint::from_bytes_be(&hex::decode("406CFF14266D31266FEA1E5C41564B777E690F5504F213160217B4B01B886A5E91547F9E2749F4D7FBD7D3B9A92EE1909D0D2263F80A76A6A24C087A091F531DBF0A0169B6A28AD662A4D18E73AFA32D779D5918D08BC8858F4DCEF97C2A24855E6EEB22B3B2E5").unwrap(),);
-        
+
         let beta: BigUint = alpha.modpow(&exp, &p);
 
         (alpha, beta, p, q)
