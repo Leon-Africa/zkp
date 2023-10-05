@@ -3,10 +3,10 @@ use num_bigint::{BigUint, RandBigInt};
 use rand::{rngs::ThreadRng, Rng};
 
 pub struct ZKP {
-    p: BigUint,     //prime
-    q: BigUint,     //group order
-    alpha: BigUint, //generator
-    beta: BigUint,  //generator
+   pub p: BigUint,     //prime
+   pub q: BigUint,     //group order
+   pub alpha: BigUint, //generator
+   pub beta: BigUint,  //generator
 }
 
 impl ZKP {

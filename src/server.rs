@@ -22,8 +22,7 @@ pub struct AuthImpl {
     pub user_info: Mutex<HashMap<String, UserInfo>>,
     pub auth_id_to_user: Mutex<HashMap<String, String>>,
 }
-
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Hash)]
 pub struct UserInfo {
     pub user_name: String,
 
@@ -38,8 +37,9 @@ pub struct UserInfo {
     //verification
     pub c: BigUint,
     pub s: BigUint,
-    pub session_id: BigUint,
+    pub session_id: String,
 }
+
 #[tonic::async_trait]
 impl Auth for AuthImpl {
     async fn register(
@@ -83,13 +83,13 @@ impl Auth for AuthImpl {
 
         //has the user registered
         if let Some(user_info) = user_info_hashmap.get_mut(&username) {
-            user_info.r1 = BigUint::from_bytes_be(&request.r1);
-            user_info.r2 = BigUint::from_bytes_be(&request.r2);
-
             let (_, _, _, q) = ZKP::get_constants();
-
             let c = ZKP::gen_ran_below(&q);
             let auth_id = ZKP::gen_ran_str(1000);
+
+            user_info.c = c.clone();
+            user_info.r1 = BigUint::from_bytes_be(&request.r1);
+            user_info.r2 = BigUint::from_bytes_be(&request.r2);
 
             println!("✅ Successful Challenge Request username: {:?}", username);
 
@@ -113,7 +113,54 @@ impl Auth for AuthImpl {
         &self,
         request: Request<AuthenticationAnswerRequest>,
     ) -> Result<Response<AuthenticationAnswerResponse>, Status> {
-        todo!()
+        println!("Processing Verification request: {:?} ", request);
+        //extract request
+        let request = request.into_inner();
+
+        //get request information
+        let auth_id = request.auth_id;
+
+        let auth_id_to_user_hashmap = &mut self.auth_id_to_user.lock().unwrap(); //async ensure no other read or process can read from memory
+
+        //has the user registered
+        if let Some(user_name) = auth_id_to_user_hashmap.get(&auth_id) {
+            let mut user_info_hashmap = &mut self.user_info.lock().unwrap(); //async ensure no other read or process can read from memory
+            let user_info = user_info_hashmap
+                .get_mut(user_name)
+                .expect("AUthId: {} not found on hashmap");
+
+            let s = &user_info.s;
+            let r1 = &user_info.r1;
+            let r2 = &user_info.r2;
+            let y1 = &user_info.y1;
+            let y2 = &user_info.y2;
+            let c = &user_info.c;
+
+            let (alpha, beta, p, q) = ZKP::get_constants();
+            let zkp = ZKP { alpha, beta, p, q };
+
+            let verification = zkp.verify(r1, r2, y1, y2, c, s);
+
+            if verification {
+                let session_id = ZKP::gen_ran_str(1000);
+
+                println!("Correct Challenge Solution username: {:?}", user_name);
+
+                Ok(Response::new(AuthenticationAnswerResponse { session_id }))
+            } else {
+                println!("Wrong Challenge Solution username: {:?}", user_name);
+
+                Err(Status::new(
+                    Code::PermissionDenied,
+                    format!("AuthId: {} bad solution to the challenge", auth_id),
+                ))
+            }
+        } else {
+            Err(Status::new(
+                Code::NotFound,
+                format!("AuthId: {} not found in database", auth_id),
+            ))
+        }
     }
 }
 
