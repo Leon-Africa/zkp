@@ -1,4 +1,6 @@
 ## ZKP Protocol
+🛠️ zkDevOps Pipeline WIP 🛠️
+
 The following code utilizes ZKP Protocol - learn more in theory section of this repository.
 The protocol is implemented as server and client using gRPC protocol according to the provided interface
 described in “protobuf” schema. 
